@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Model;
 use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['judul_film', 'durasi', 'deskripsi', 'rating', 'tahun_rilis', 'poster', 'genre_id', 'sutradara'])]
+#[Fillable(['judul_film', 'slug', 'durasi', 'deskripsi', 'rating', 'tahun_rilis', 'poster', 'genre_id', 'sutradara'])]
 class Film extends Model
 {
     /** @use HasFactory<\Database\Factories\FilmFactory> */

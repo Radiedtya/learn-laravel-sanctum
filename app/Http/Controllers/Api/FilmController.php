@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Film;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class FilmController extends Controller
 {
@@ -48,7 +49,17 @@ class FilmController extends Controller
                 'sutradara'  => 'required|string|max:255',
             ]);
 
-            $film = Film::create($request->all());
+            $film = Film::create([
+                'judul_film' => $request->judul_film,
+                'slug'       => Str::slug($request->judul_film) . Str::random(10),
+                'durasi'     => $request->durasi,
+                'rating'     => $request->rating,
+                'deskripsi'  => $request->deskripsi,
+                'tahun_rilis'=> $request->tahun_rilis,
+                'poster'     => $request->poster,
+                'genre_id'   => $request->genre_id,
+                'sutradara'  => $request->sutradara,
+            ]);
 
             return response()->json([
                 'status'  => true,
@@ -87,7 +98,17 @@ class FilmController extends Controller
                 'sutradara'  => 'required|string|max:255',
             ]);
             
-            $film->update($request->all());
+            $film->update([
+                'judul_film' => $request->judul_film,
+                'slug'       => Str::slug($request->judul_film) . Str::random(10),
+                'durasi'     => $request->durasi,
+                'rating'     => $request->rating,
+                'deskripsi'  => $request->deskripsi,
+                'tahun_rilis'=> $request->tahun_rilis,
+                'poster'     => $request->poster,
+                'genre_id'   => $request->genre_id,
+                'sutradara'  => $request->sutradara,
+            ]);
 
             return response()->json([
                 'status'  => true,
