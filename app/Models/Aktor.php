@@ -2,14 +2,21 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Guarded;
+use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-#[Fillable(['nama_aktor', 'gender', 'umur', 'foto'])]
+#[Guarded(['id'])]
+#[Hidden(['pivot'])]
 class Aktor extends Model
 {
     /** @use HasFactory<\Database\Factories\AktorFactory> */
-    use HasFactory, HasApiTokens;
+    use HasFactory;
+
+    public function films(): BelongsToMany
+    {
+        return $this->belongsToMany(Film::class);
+    }
 }

@@ -2,20 +2,25 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Model;
-use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-#[Fillable(['judul_film', 'slug', 'durasi', 'deskripsi', 'rating', 'tahun_rilis', 'poster', 'genre_id', 'sutradara'])]
+#[Guarded(['id'])]
 class Film extends Model
 {
     /** @use HasFactory<\Database\Factories\FilmFactory> */
-    use HasFactory, HasApiTokens;
+    use HasFactory;
 
     public function genre(): BelongsTo
     {
         return $this->belongsTo(Genre::class);
+    }
+
+    public function aktors(): BelongsToMany
+    {
+        return $this->belongsToMany(Aktor::class);
     }
 }

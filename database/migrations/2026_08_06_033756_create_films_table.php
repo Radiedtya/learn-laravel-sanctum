@@ -13,15 +13,22 @@ return new class extends Migration
     {
         Schema::create('films', function (Blueprint $table) {
             $table->id();
-            $table->string('judul_film');
+            $table->string('judul_film')->unique();
             $table->string('slug')->unique();
             $table->integer('durasi');
             $table->decimal('rating', 2, 1);
             $table->text('deskripsi')->nullable();
             $table->year('tahun_rilis');
             $table->string('poster');
-            $table->foreignId('genre_id')->constrained('genres')->onDelete('cascade');
             $table->string('sutradara');
+            $table->foreignId('genre_id')->constrained('genres')->onDelete('cascade');
+            $table->timestamps();
+        });
+
+        Schema::create('aktor_film', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('aktor_id')->constrained('aktors')->onDelete('cascade');
+            $table->foreignId('film_id')->constrained('films')->onDelete('cascade');
             $table->timestamps();
         });
     }
@@ -31,6 +38,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('aktor_film');
         Schema::dropIfExists('films');
     }
 };

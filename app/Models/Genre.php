@@ -2,16 +2,21 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['nama_genre', 'slug'])]
+#[Guarded(['id'])]
 class Genre extends Model
 {
     /** @use HasFactory<\Database\Factories\GenreFactory> */
-    use HasFactory, HasApiTokens;
+    use HasFactory;
 
     public $timestamps = true;
+
+    public function films(): HasMany
+    {
+        return $this->hasMany(Film::class);
+    }
 }
