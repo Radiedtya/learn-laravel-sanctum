@@ -52,17 +52,70 @@ class PublicController extends Controller
         }
     }
 
-    public function detailFilm(Request $request)
+    // public function detailFilm(Request $request)
+    // {
+    //     try {
+
+    //         $film = DB::table('films')
+    //             ->join('genres', 'films.genre_id', '=', 'genres.id')
+    //             ->select(
+    //                 'films.*',
+    //                 'genres.nama_genre'
+    //             )
+    //             ->where('films.id', $request->id)
+    //             ->first();
+
+    //         if (!$film) {
+    //             return response()->json([
+    //                 'status' => false,
+    //                 'message' => 'Film tidak ditemukan.'
+    //             ], 404);
+    //         }
+
+    //         $actors = DB::table('aktor_film')
+    //             ->join('aktors', 'aktor_film.aktor_id', '=', 'aktors.id')
+    //             ->where('aktor_film.film_id', $request->id)
+    //             ->select(
+    //                 'aktors.id',
+    //                 'aktors.nama_aktor'
+    //             )
+    //             ->get();
+
+    //         return response()->json([
+    //             'status' => true,
+    //             'message' => 'Detail film berhasil diambil.',
+    //             'film' => $film,
+    //             'actors' => $actors
+    //         ], 200);
+
+    //     } catch (Exception $e) {
+
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => $e->getMessage()
+    //         ], 500);
+
+    //     }
+    // }
+    public function detailFilm(string $slug)
     {
         try {
 
             $film = DB::table('films')
                 ->join('genres', 'films.genre_id', '=', 'genres.id')
                 ->select(
-                    'films.*',
+                    'films.id',
+                    'films.judul_film',
+                    'films.slug',
+                    'films.durasi',
+                    'films.rating',
+                    'films.deskripsi',
+                    'films.tahun_rilis',
+                    'films.poster',
+                    'films.sutradara',
                     'genres.nama_genre'
                 )
-                ->where('films.id', $request->id)
+                ->where('films.slug', $slug)
                 ->first();
 
             if (!$film) {
@@ -74,10 +127,11 @@ class PublicController extends Controller
 
             $actors = DB::table('aktor_film')
                 ->join('aktors', 'aktor_film.aktor_id', '=', 'aktors.id')
-                ->where('aktor_film.film_id', $request->id)
+                ->where('aktor_film.film_id', $film->id)
                 ->select(
                     'aktors.id',
-                    'aktors.nama_aktor'
+                    'aktors.nama_aktor',
+                    'aktors.foto',
                 )
                 ->get();
 

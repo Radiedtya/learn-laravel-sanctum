@@ -1,7 +1,12 @@
 <script setup>
-import HelloWorld from './components/HelloWorld.vue'
+// Nggak perlu import view manual lagi,
+// RouterView yang handle switching halaman
 </script>
 
 <template>
-  <HelloWorld />
+  <RouterView />
 </template>
+
+<style>
+/* App.vue kosongin stylenya, semua udah di style.css global */
+</style>

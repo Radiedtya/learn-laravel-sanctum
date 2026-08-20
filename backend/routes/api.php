@@ -33,7 +33,8 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::prefix('public')->group(function () {
 
     Route::get('/films', [PublicController::class, 'films']);
-    Route::get('/films/{id}', [PublicController::class, 'detailFilm']);
+    // Route::get('/films/{id}', [PublicController::class, 'detailFilm']);
+    Route::get('/films/{slug}', [PublicController::class, 'detailFilm']);
 
     Route::get('/genres', [PublicController::class, 'genres']);
     Route::get('/genres/{id}/films', [PublicController::class, 'filmByGenre']);
