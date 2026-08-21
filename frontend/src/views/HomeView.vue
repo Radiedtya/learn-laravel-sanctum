@@ -1,88 +1,62 @@
 <script setup>
-// ─── STEP 1: Import ────────────────────────────────────────────
 import { ref, onMounted } from "vue";
 import { RouterLink } from "vue-router";
-import api from "../utils/api"; // ← pakai helper, bukan axios langsung
+import api from "../utils/api";
 
-// ─── STEP 2: Deklarasi variabel reaktif ───────────────────────
-const films = ref([]); // [] = array kosong, nanti diisi data film
-const loading = ref(true); // true = tampilkan loading saat pertama buka
-const error = ref(null); // null = belum ada error
-const keyword = ref(""); // '' = input pencarian masih kosong
+const films = ref([]);
+const loading = ref(true);
+const error = ref(null);
+const keyword = ref("");
 
-// Catatan: BASE_URL sudah ada di dalam utils/api.js, jadi tidak perlu ditulis lagi
-
-// ─── STEP 3: Fungsi untuk ambil semua film ─────────────────────
 const ambilDataFilm = async () => {
   try {
     loading.value = true;
     error.value = null;
-
-    // api.js sudah punya baseURL → cukup tulis path-nya saja
-    const response = await api.get("/public/films");
-
-    //  response.data           → { status, message, data: {...} }
-    //  response.data.data      → { current_page, total, data: [...] }
-    //  response.data.data.data → [array film] ← INI yang kita simpan
-    films.value = response.data.data.data;
+    const res = await api.get("/public/films");
+    films.value = res.data.data.data;
   } catch (err) {
-    error.value =
-      "Gagal mengambil data. Pastikan server Laravel sudah berjalan!";
-    console.error("Error detail:", err);
+    error.value = "Gagal memuat data. Coba lagi nanti.";
+    console.error(err);
   } finally {
     loading.value = false;
   }
 };
 
-// ─── STEP 4: Fungsi pencarian film (dengan Debounce) ──────────
-// DEBOUNCE = tunggu user selesai mengetik, baru kirim request
 let searchTimeout = null;
 
 const cariFilm = () => {
-  clearTimeout(searchTimeout); // Batalkan timer sebelumnya
-
+  clearTimeout(searchTimeout);
   searchTimeout = setTimeout(async () => {
     if (keyword.value.trim() === "") {
-      ambilDataFilm(); // Jika search kosong, tampilkan semua
+      ambilDataFilm();
       return;
     }
-
     try {
       loading.value = true;
       error.value = null;
-
-      const response = await api.get("/public/search", {
-        params: { keyword: keyword.value }, // → ?keyword=avengers
+      const res = await api.get("/public/search", {
+        params: { keyword: keyword.value },
       });
-      films.value = response.data.data.data;
+      films.value = res.data.data.data;
     } catch (err) {
-      // Tampilkan error ke user, jangan hanya di console!
-      error.value = "Pencarian gagal. Pastikan server Laravel sedang berjalan!";
-      console.error("Error cariFilm:", err);
+      error.value = "Pencarian gagal. Coba lagi nanti.";
+      console.error(err);
     } finally {
       loading.value = false;
     }
-  }, 500); // ← Tunggu 500ms setelah ketikan terakhir
+  }, 500);
 };
 
-// ─── STEP 5: Panggil fungsi saat halaman dibuka ────────────────
-onMounted(() => {
-  ambilDataFilm();
-});
+onMounted(ambilDataFilm);
 </script>
 
 <template>
   <div class="container">
-    <!-- 1. HEADER HALAMAN -->
     <div class="page-header">
-      <h1>🎬 Daftar Film</h1>
+      <h1>Daftar Film</h1>
       <p class="subtitle">Temukan film favoritmu</p>
     </div>
 
-    <!-- 2. KOTAK PENCARIAN
-         v-model="keyword"  → nilai input terhubung ke variabel keyword
-         @input="cariFilm"  → jalankan fungsi cariFilm() setiap ada ketikan
-    -->
     <div class="search-box">
       <input
         v-model="keyword"
@@ -92,19 +66,11 @@ onMounted(() => {
       />
     </div>
 
-    <!-- 3. KONDISI TAMPILAN
-         Hanya SATU dari tiga blok ini yang tampil pada satu waktu
-    -->
-    <p v-if="loading" class="loading-text">⏳ Memuat data film...</p>
+    <p v-if="loading" class="loading-text">Memuat data film...</p>
 
-    <div v-else-if="error" class="alert alert-error">❌ {{ error }}</div>
+    <div v-else-if="error" class="alert alert-error">{{ error }}</div>
 
     <div v-else class="film-grid">
-      <!-- 4. LOOP FILM dengan v-for
-           - "film" = nama variabel untuk setiap item
-           - "films" = array yang kita loop
-           - ":key" = ID unik setiap item (WAJIB ada di v-for)
-      -->
       <div v-for="film in films" :key="film.id" class="film-card">
         <div class="film-poster">
           <img :src="film.poster" :alt="film.judul_film" />
@@ -114,29 +80,25 @@ onMounted(() => {
             </RouterLink>
           </div>
         </div>
-
         <div class="film-info">
           <h3 class="film-title">{{ film.judul_film }}</h3>
           <div class="film-meta">
             <span class="badge">{{ film.nama_genre }}</span>
-            <!-- ?.substring() = aman jika nilai null -->
-            <span>📅 {{ film.tahun_rilis?.substring(0, 4) }}</span>
+            <span>{{ film.tahun_rilis }}</span>
           </div>
-          <p>🎬 {{ film.sutradara }}</p>
-          <p>⏱️ {{ film.durasi }} menit</p>
+          <p>{{ film.sutradara }}</p>
+          <p>{{ film.durasi }} menit</p>
         </div>
       </div>
     </div>
 
-    <!-- 5. EMPTY STATE: tampil jika tidak ada film -->
     <div v-if="!loading && films.length === 0 && !error" class="empty-state">
-      <p>😕 Tidak ada film yang ditemukan.</p>
+      <p>Tidak ada film yang ditemukan.</p>
     </div>
   </div>
 </template>
 
 <style scoped>
-/* ── Page Header ─────────────────────────────────────────── */
 .page-header {
   margin-bottom: 36px;
 }
@@ -153,10 +115,8 @@ onMounted(() => {
   margin-top: 6px;
   font-size: 15px;
   color: var(--color-gray);
-  font-weight: 400;
 }
 
-/* ── Search Box ──────────────────────────────────────────── */
 .search-box {
   position: relative;
   margin-bottom: 36px;
@@ -165,8 +125,7 @@ onMounted(() => {
 
 .search-box input {
   width: 100%;
-  padding: 14px 20px;
-  padding-left: 46px;
+  padding: 14px 20px 14px 46px;
   background: var(--color-dark3);
   border: 1.5px solid var(--color-dark5);
   border-radius: var(--radius);
@@ -187,7 +146,6 @@ onMounted(() => {
   background: var(--color-dark2);
 }
 
-/* Ikon 🔍 sebagai pseudo-element biar rapi */
 .search-box::before {
   content: "🔍";
   position: absolute;
@@ -198,14 +156,12 @@ onMounted(() => {
   pointer-events: none;
 }
 
-/* ── Film Grid ───────────────────────────────────────────── */
 .film-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 28px;
 }
 
-/* ── Film Card ───────────────────────────────────────────── */
 .film-card {
   background: var(--color-dark3);
   border-radius: var(--radius-lg);
@@ -222,7 +178,6 @@ onMounted(() => {
   border-color: rgba(233, 69, 96, 0.3);
 }
 
-/* ── Poster ──────────────────────────────────────────────── */
 .film-poster {
   position: relative;
   aspect-ratio: 2 / 3;
@@ -244,7 +199,6 @@ onMounted(() => {
   filter: brightness(0.5);
 }
 
-/* ── Overlay (muncul saat hover) ─────────────────────────── */
 .film-overlay {
   position: absolute;
   inset: 0;
@@ -273,7 +227,6 @@ onMounted(() => {
   box-shadow: 0 4px 20px rgba(233, 69, 96, 0.5);
 }
 
-/* ── Film Info ───────────────────────────────────────────── */
 .film-info {
   padding: 16px;
   display: flex;
@@ -317,7 +270,6 @@ onMounted(() => {
 .film-meta span:not(.badge) {
   font-size: 13px;
   color: var(--color-gray);
-  font-weight: 400;
 }
 
 .film-info p {
@@ -326,7 +278,6 @@ onMounted(() => {
   line-height: 1.4;
 }
 
-/* ── Empty State ─────────────────────────────────────────── */
 .empty-state {
   text-align: center;
   padding: 80px 20px;
@@ -338,7 +289,6 @@ onMounted(() => {
   font-weight: 500;
 }
 
-/* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 640px) {
   .container {
     padding: 20px 16px 48px;
