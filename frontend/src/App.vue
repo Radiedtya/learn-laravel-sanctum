@@ -62,6 +62,7 @@ const tutupMenu = () => {
         <!-- Desktop nav -->
         <div class="nav-links">
           <RouterLink to="/" class="nav-link">Film</RouterLink>
+          <RouterLink to="/genre" class="nav-link">Genre</RouterLink>
 
           <template v-if="!isLoggedIn">
             <RouterLink to="/login" class="nav-link">Login</RouterLink>

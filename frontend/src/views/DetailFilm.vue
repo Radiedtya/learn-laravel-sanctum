@@ -107,7 +107,7 @@ onMounted(() => {
               <div v-if="film.rating" class="hero-rating">
                 <div class="rating-star">★</div>
                 <span class="rating-value">{{ film.rating }}</span>
-                <span class="rating-label">/ 10</span>
+                <span class="rating-label">/ 5</span>
               </div>
 
               <!-- Sutradara -->
