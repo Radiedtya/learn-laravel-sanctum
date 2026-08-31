@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { RouterLink } from "vue-router";
-import api from "../utils/api";
+import api from "../../utils/api";
 
 const genres = ref([]);
 const genrePage = ref(1);

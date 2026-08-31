@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import api from "../utils/api";
+import api from "../../utils/api";
 
 const router = useRouter();
 const route = useRoute();
@@ -133,18 +133,12 @@ onMounted(() => {
       </section>
 
       <!-- Daftar Aktor Section -->
-      <section
-        v-if="actors.length > 0"
-        class="section-aktors"
-      >
+      <section v-if="actors.length > 0" class="section-aktors">
         <div class="container">
           <div class="section-card">
             <h2 class="section-title">Daftar Pemain</h2>
             <div class="actor-grid">
-              <div
-                v-for="aktor in actors" :key="aktor.id"
-                class="actor-card"
-              >
+              <div v-for="aktor in actors" :key="aktor.id" class="actor-card">
                 <div class="actor-avatar">
                   <img
                     v-if="aktor.foto"

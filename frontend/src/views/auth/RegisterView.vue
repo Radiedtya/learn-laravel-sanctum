@@ -1,7 +1,7 @@
 <script setup>
 import { ref, reactive } from "vue";
 import { useRouter, RouterLink } from "vue-router";
-import api from "../utils/api";
+import api from "../../utils/api";
 
 const router = useRouter();
 

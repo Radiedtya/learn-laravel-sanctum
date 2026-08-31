@@ -242,7 +242,8 @@ class PublicController extends Controller
                     'foto',
                 )
                 ->orderBy('nama_aktor', 'asc')
-                ->paginate(10);
+                // ->paginate(10)
+                ->get();
 
             return response()->json([
                 'status' => true,

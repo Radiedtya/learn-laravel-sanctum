@@ -1,7 +1,7 @@
 <script setup>
 import { ref, reactive, onMounted, watch } from "vue";
 import { RouterLink, useRouter, useRoute } from "vue-router";
-import api from "../utils/api";
+import api from "../../../utils/api";
 
 const router = useRouter();
 const route = useRoute();
@@ -48,7 +48,7 @@ onMounted(async () => {
     ]);
 
     genres.value = gRes.data.data.data;
-    actors.value = aRes.data.data.data;
+    actors.value = aRes.data.data;
 
     const film = filmRes.data.data;
     form.judul_film = film.judul_film || "";

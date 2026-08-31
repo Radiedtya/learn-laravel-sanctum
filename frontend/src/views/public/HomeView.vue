@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { RouterLink } from "vue-router";
-import api from "../utils/api";
+import api from "../../utils/api";
 
 const films = ref([]);
 const loading = ref(true);
@@ -120,7 +120,7 @@ onMounted(ambilDataFilm);
 .search-box {
   position: relative;
   margin-bottom: 36px;
-  max-width: 480px;
+  max-width: 500px;
 }
 
 .search-box input {
@@ -147,7 +147,7 @@ onMounted(ambilDataFilm);
 }
 
 .search-box::before {
-  content: "🔍";
+  /* content: <Search />; */
   position: absolute;
   left: 16px;
   top: 50%;

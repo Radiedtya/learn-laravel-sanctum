@@ -1,7 +1,7 @@
 <script setup>
 import { ref, reactive, onMounted, watch } from "vue";
 import { RouterLink, useRouter } from "vue-router";
-import api from "../utils/api";
+import api from "../../../utils/api";
 
 const router = useRouter();
 const loading = ref(false);
@@ -54,7 +54,7 @@ onMounted(async () => {
       api.get("public/actors"),
     ]);
     genres.value = g.data.data.data;
-    actors.value = a.data.data.data;
+    actors.value = a.data.data;
   } catch {
     errorMsg.value = "Gagal memuat data genre/aktor.";
   }
