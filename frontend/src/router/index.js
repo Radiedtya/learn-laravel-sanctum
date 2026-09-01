@@ -17,21 +17,19 @@ import KelolaGenre from "../views/admin/genre/KelolaGenre.vue";
 import KelolaAktor from "../views/admin/aktor/KelolaAktor.vue";
 
 const routes = [
-  // public
   { path: "/", component: HomeView },
   { path: "/genre", component: GenreView },
   { path: "/film/:slug", component: DetailFilm },
-  
+
   { path: "/login", component: LoginView },
   { path: "/register", component: RegisterView },
 
-  // admin
-  { path: "/dashboard", component: DashboardView },
-  { path: "/kelola-film", component: KelolaFilm },
-  { path: "/tambah-film", component: TambahFilm },
-  { path: "/edit-film/:id", component: EditFilm },
-  { path: "/kelola-genre", component: KelolaGenre },
-  { path: "/kelola-aktor", component: KelolaAktor },
+  { path: "/dashboard", component: DashboardView, meta: { admin: true } },
+  { path: "/kelola-film", component: KelolaFilm, meta: { admin: true } },
+  { path: "/tambah-film", component: TambahFilm, meta: { admin: true } },
+  { path: "/edit-film/:id", component: EditFilm, meta: { admin: true } },
+  { path: "/kelola-genre", component: KelolaGenre, meta: { admin: true } },
+  { path: "/kelola-aktor", component: KelolaAktor, meta: { admin: true } },
 ];
 
 const router = createRouter({

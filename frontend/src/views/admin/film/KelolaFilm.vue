@@ -61,7 +61,7 @@ const konfirmasiHapus = async () => {
 <template>
   <div class="container">
     <div class="page-head">
-      <RouterLink to="/dashboard" class="back-link">
+      <!-- <RouterLink to="/dashboard" class="back-link">
         <svg
           width="16"
           height="16"
@@ -75,9 +75,9 @@ const konfirmasiHapus = async () => {
           <polyline points="15 18 9 12 15 6" />
         </svg>
         Dashboard
-      </RouterLink>
+      </RouterLink> -->
       <div class="title-row">
-        <h1>Kelola Film</h1>
+        <!-- <h1>Kelola Film</h1> -->
         <RouterLink to="/tambah-film" class="btn-add">
           <svg
             width="14"

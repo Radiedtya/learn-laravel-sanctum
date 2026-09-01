@@ -1,223 +1,158 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRouter, RouterLink } from "vue-router";
+import api from "../../utils/api";
 
 const router = useRouter();
-const user = ref(null);
+const stats = ref({ film: 0, genre: 0, aktor: 0 });
+const recentFilms = ref([]);
+const loading = ref(true);
 
-onMounted(() => {
-  const token = localStorage.getItem("token");
-  const userData = localStorage.getItem("user");
-
-  if (!token) {
+onMounted(async () => {
+  if (!localStorage.getItem("token")) {
     router.push("/login");
     return;
   }
 
   try {
-    user.value = JSON.parse(userData);
-  } catch (e) {
-    user.value = null;
+    const [filmRes, genreRes, aktorRes] = await Promise.all([
+      api.get("/films"),
+      api.get("/genres"),
+      api.get("/aktors"),
+    ]);
+
+    const filmData = filmRes.data.data;
+    const filmArray = Array.isArray(filmData) ? filmData : (filmData.data || []);
+
+    stats.value.film = filmArray.length;
+    stats.value.genre = Array.isArray(genreRes.data.data) ? genreRes.data.data.length : 0;
+    stats.value.aktor = Array.isArray(aktorRes.data.data) ? aktorRes.data.data.length : 0;
+    recentFilms.value = filmArray.slice(0, 5);
+  } catch (err) {
+    console.error(err);
+  } finally {
+    loading.value = false;
   }
 });
 </script>
 
 <template>
-  <div class="dash">
-    <div class="dash-header">
-      <div>
-        <h1 class="dash-title">Dashboard</h1>
-        <p class="dash-sub">{{ user?.email }}</p>
+  <div>
+    <div v-if="!loading" class="stats">
+      <div class="stat">
+        <div class="stat-icon stat-icon--red">
+          <i class="pi pi-video"></i>
+        </div>
+        <div class="stat-body">
+          <span class="stat-num">{{ stats.film }}</span>
+          <span class="stat-label">Total Film</span>
+        </div>
+      </div>
+
+      <div class="stat">
+        <div class="stat-icon stat-icon--yellow">
+          <i class="pi pi-tags"></i>
+        </div>
+        <div class="stat-body">
+          <span class="stat-num">{{ stats.genre }}</span>
+          <span class="stat-label">Total Genre</span>
+        </div>
+      </div>
+
+      <div class="stat">
+        <div class="stat-icon stat-icon--teal">
+          <i class="pi pi-user"></i>
+        </div>
+        <div class="stat-body">
+          <span class="stat-num">{{ stats.aktor }}</span>
+          <span class="stat-label">Total Aktor</span>
+        </div>
       </div>
     </div>
 
-    <div class="dash-grid">
-      <RouterLink to="/kelola-film" class="dash-card">
-        <div class="dash-card-icon">
-          <i class="pi pi-video"></i>
-        </div>
-        <div class="dash-card-body">
-          <h3>Kelola Film</h3>
-          <p>Edit dan hapus data film</p>
-        </div>
-        <i class="pi pi-arrow-right dash-card-arrow"></i>
-      </RouterLink>
+    <p v-if="loading" class="load-text">Memuat data...</p>
 
-      <RouterLink to="/tambah-film" class="dash-card">
-        <div class="dash-card-icon dash-card-icon--green">
-          <i class="pi pi-plus"></i>
-        </div>
-        <div class="dash-card-body">
-          <h3>Tambah Film</h3>
-          <p>Input film baru ke database</p>
-        </div>
-        <i class="pi pi-arrow-right dash-card-arrow"></i>
-      </RouterLink>
-
-      <RouterLink to="/kelola-genre" class="dash-card">
-        <div class="dash-card-icon dash-card-icon--yellow">
-          <i class="pi pi-tags"></i>
-        </div>
-        <div class="dash-card-body">
-          <h3>Kelola Genre</h3>
-          <p>Tambah, edit, dan hapus genre</p>
-        </div>
-        <i class="pi pi-arrow-right dash-card-arrow"></i>
-      </RouterLink>
-
-      <RouterLink to="/kelola-aktor" class="dash-card">
-        <div class="dash-card-icon dash-card-icon--teal">
-          <i class="pi pi-user"></i>
-        </div>
-        <div class="dash-card-body">
-          <h3>Kelola Aktor</h3>
-          <p>Tambah, edit, dan hapus aktor</p>
-        </div>
-        <i class="pi pi-arrow-right dash-card-arrow"></i>
-      </RouterLink>
-
-      <RouterLink to="/" class="dash-card">
-        <div class="dash-card-icon dash-card-icon--blue">
-          <i class="pi pi-eye"></i>
-        </div>
-        <div class="dash-card-body">
-          <h3>Lihat Katalog</h3>
-          <p>Buka halaman publik</p>
-        </div>
-        <i class="pi pi-arrow-right dash-card-arrow"></i>
-      </RouterLink>
+    <div v-if="!loading && recentFilms.length > 0" class="recent">
+      <div class="recent-head">
+        <h2>Film Terbaru</h2>
+        <RouterLink to="/kelola-film" class="recent-see">Lihat semua</RouterLink>
+      </div>
+      <div class="recent-grid">
+        <RouterLink
+          v-for="film in recentFilms"
+          :key="film.id"
+          :to="'/film/' + film.slug"
+          class="recent-card"
+        >
+          <div class="recent-poster">
+            <img :src="film.poster" :alt="film.judul_film" />
+          </div>
+          <div class="recent-info">
+            <h3>{{ film.judul_film }}</h3>
+            <span>{{ film.nama_genre }} &middot; {{ film.tahun_rilis }}</span>
+          </div>
+        </RouterLink>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.dash {
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 32px 24px;
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 36px;
 }
 
-.dash-header {
-  margin-bottom: 32px;
-  padding-bottom: 24px;
-  border-bottom: 1px solid var(--color-dark5);
-}
-
-.dash-title {
-  font-size: 1.6rem;
-  font-weight: 800;
-  color: var(--color-white);
-  letter-spacing: -0.02em;
-}
-
-.dash-sub {
-  margin-top: 4px;
-  font-size: 13px;
-  color: var(--color-gray-dark);
-}
-
-.dash-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.dash-card {
+.stat {
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 18px 20px;
+  padding: 20px;
   background: var(--color-dark3);
   border: 1px solid var(--color-dark5);
-  border-radius: var(--radius);
-  color: var(--color-text);
-  text-decoration: none;
-  transition: all var(--transition);
+  border-radius: var(--radius-lg);
 }
 
-.dash-card:hover {
-  background: var(--color-dark4);
-  border-color: var(--color-gray-dark);
-  text-decoration: none;
-  transform: translateX(4px);
+.stat-icon {
+  width: 48px; height: 48px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0;
 }
+.stat-icon--red { background: rgba(233,69,96,0.1); color: var(--color-primary); }
+.stat-icon--yellow { background: rgba(241,196,15,0.1); color: #f1c40f; }
+.stat-icon--teal { background: rgba(26,188,156,0.1); color: #1abc9c; }
 
-.dash-card-icon {
-  flex-shrink: 0;
-  width: 42px;
-  height: 42px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 10px;
-  background: rgba(233, 69, 96, 0.1);
-  color: var(--color-primary);
-  font-size: 18px;
-}
+.stat-body { display: flex; flex-direction: column; gap: 2px; }
+.stat-num { font-size: 28px; font-weight: 800; color: var(--color-white); letter-spacing: -0.03em; line-height: 1; }
+.stat-label { font-size: 12px; color: var(--color-gray-dark); font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; }
 
-.dash-card-icon--green {
-  background: rgba(39, 174, 96, 0.1);
-  color: #5ddb9a;
-}
+.load-text { color: var(--color-gray-dark); font-size: 14px; padding: 40px 0; }
 
-.dash-card-icon--yellow {
-  background: rgba(241, 196, 15, 0.1);
-  color: #f1c40f;
-}
+.recent { margin-top: 4px; }
+.recent-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; }
+.recent-head h2 { font-size: 15px; font-weight: 700; color: var(--color-white); }
+.recent-see { font-size: 12px; font-weight: 600; color: var(--color-primary); text-decoration: none; transition: opacity 0.15s; }
+.recent-see:hover { opacity: 0.7; }
 
-.dash-card-icon--teal {
-  background: rgba(26, 188, 156, 0.1);
-  color: #1abc9c;
-}
+.recent-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+.recent-card { display: flex; flex-direction: column; background: var(--color-dark3); border: 1px solid var(--color-dark5); border-radius: var(--radius); overflow: hidden; text-decoration: none; transition: all 0.2s; }
+.recent-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); border-color: rgba(233,69,96,0.2); }
+.recent-poster { aspect-ratio: 2/3; overflow: hidden; background: var(--color-dark2); }
+.recent-poster img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
+.recent-card:hover .recent-poster img { transform: scale(1.06); }
+.recent-info { padding: 12px; display: flex; flex-direction: column; gap: 4px; }
+.recent-info h3 { font-size: 13px; font-weight: 700; color: var(--color-white); line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.recent-info span { font-size: 11px; color: var(--color-gray-dark); }
 
-.dash-card-icon--blue {
-  background: rgba(41, 128, 185, 0.1);
-  color: #5dade2;
-}
-
-.dash-card-body {
-  flex: 1;
-  min-width: 0;
-}
-
-.dash-card-body h3 {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--color-white);
-  margin-bottom: 2px;
-}
-
-.dash-card-body p {
-  font-size: 13px;
-  color: var(--color-gray-dark);
-}
-
-.dash-card-arrow {
-  flex-shrink: 0;
-  color: var(--color-gray-dark);
-  font-size: 14px;
-  transition: transform var(--transition), color var(--transition);
-}
-
-.dash-card:hover .dash-card-arrow {
-  transform: translateX(3px);
-  color: var(--color-text);
-}
-
-@media (max-width: 480px) {
-  .dash {
-    padding: 20px 16px;
-  }
-
-  .dash-card {
-    padding: 14px 16px;
-    gap: 12px;
-  }
-
-  .dash-card-icon {
-    width: 36px;
-    height: 36px;
-    font-size: 15px;
-  }
+@media (max-width: 900px) { .recent-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 640px) {
+  .stats { grid-template-columns: 1fr; gap: 10px; }
+  .stat { padding: 16px; }
+  .stat-num { font-size: 24px; }
+  .recent-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .recent-info { padding: 10px; }
+  .recent-info h3 { font-size: 12px; }
 }
 </style>

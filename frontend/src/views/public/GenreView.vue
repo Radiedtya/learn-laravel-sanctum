@@ -7,6 +7,7 @@ const genres = ref([]);
 const genrePage = ref(1);
 const genreLastPage = ref(1);
 const genreLoading = ref(false);
+const genreInit = ref(true);
 const selectedGenre = ref(null);
 const selectedGenreName = ref("");
 
@@ -18,7 +19,6 @@ const filmInit = ref(false);
 
 const ambilGenre = async () => {
   if (genreLoading.value || genrePage.value > genreLastPage.value) return;
-
   genreLoading.value = true;
   try {
     const res = await api.get("/public/genres", {
@@ -32,6 +32,7 @@ const ambilGenre = async () => {
     console.error(err);
   } finally {
     genreLoading.value = false;
+    genreInit.value = false;
   }
 };
 
@@ -42,12 +43,12 @@ const pilihGenre = async (genre) => {
   filmPage.value = 1;
   filmLastPage.value = 1;
   filmInit.value = true;
+  // filmLoading.value = true; // bikin looping jir loadingnya
   await ambilFilm();
 };
 
 const ambilFilm = async () => {
   if (filmLoading.value || filmPage.value > filmLastPage.value) return;
-
   filmLoading.value = true;
   try {
     const res = await api.get(`/public/genres/${selectedGenre.value}/films`, {
@@ -74,29 +75,37 @@ onMounted(ambilGenre);
       <p class="subtitle">Pilih genre untuk melihat daftar film</p>
     </div>
 
-    <!-- Daftar Genre -->
+    <!-- Genre Chips -->
     <div class="genre-section">
-      <div class="genre-chips">
-        <button
-          v-for="g in genres"
-          :key="g.id"
-          class="chip"
-          :class="{ active: selectedGenre === g.id }"
-          @click="pilihGenre(g)"
-        >
-          {{ g.nama_genre }}
-        </button>
+      <!-- Skeleton chips -->
+      <div v-if="genreInit" class="genre-chips">
+        <div v-for="i in 8" :key="i" class="skel skel-chip"></div>
       </div>
 
-      <button
-        v-if="genrePage <= genreLastPage && genres.length > 0"
-        @click="ambilGenre"
-        :disabled="genreLoading"
-        class="btn-more"
-      >
-        <span v-if="genreLoading" class="btn-spin"></span>
-        <span>{{ genreLoading ? "Memuat..." : "Muat Lebih Banyak" }}</span>
-      </button>
+      <!-- Real chips -->
+      <template v-else>
+        <div class="genre-chips">
+          <button
+            v-for="g in genres"
+            :key="g.id"
+            class="chip"
+            :class="{ active: selectedGenre === g.id }"
+            @click="pilihGenre(g)"
+          >
+            {{ g.nama_genre }}
+          </button>
+        </div>
+
+        <button
+          v-if="genrePage <= genreLastPage && genres.length > 0"
+          @click="ambilGenre"
+          :disabled="genreLoading"
+          class="btn-more"
+        >
+          <span v-if="genreLoading" class="btn-spin"></span>
+          <span>{{ genreLoading ? "Memuat..." : "Muat Lebih Banyak" }}</span>
+        </button>
+      </template>
     </div>
 
     <!-- Film per Genre -->
@@ -108,13 +117,29 @@ onMounted(ambilGenre);
         >
       </div>
 
+      <!-- Skeleton grid -->
+      <div
+        v-if="filmLoading && films.length === 0"
+        class="film-grid"
+      >
+        <div v-for="i in 8" :key="i" class="film-card">
+          <div class="skel skel-poster"></div>
+          <div class="film-info">
+            <div class="skel skel-line" style="width: 80%; height: 14px"></div>
+            <div class="skel skel-line" style="width: 50%; height: 12px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty -->
       <p
-        v-if="filmInit && films.length === 0 && !filmLoading"
+        v-else-if="!filmLoading && films.length === 0"
         class="empty-text"
       >
         Belum ada film untuk genre ini.
       </p>
 
+      <!-- Real grid -->
       <div v-if="films.length > 0" class="film-grid">
         <RouterLink
           v-for="film in films"
@@ -124,6 +149,9 @@ onMounted(ambilGenre);
         >
           <div class="film-poster">
             <img :src="film.poster" :alt="film.judul_film" />
+            <div class="film-overlay">
+              <span class="film-overlay-text">Lihat Detail</span>
+            </div>
           </div>
           <div class="film-info">
             <h3>{{ film.judul_film }}</h3>
@@ -134,6 +162,7 @@ onMounted(ambilGenre);
         </RouterLink>
       </div>
 
+      <!-- Load more films -->
       <button
         v-if="filmPage <= filmLastPage && films.length > 0"
         @click="ambilFilm"
@@ -145,28 +174,63 @@ onMounted(ambilGenre);
       </button>
     </div>
 
-    <!-- Placeholder jika belum pilih genre -->
-    <div v-else-if="genres.length > 0" class="placeholder">
-      <svg
-        width="48"
-        height="48"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        class="placeholder-icon"
-      >
-        <polygon points="23 7 16 12 23 17 23 7" />
-        <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
-      </svg>
+    <!-- Placeholder -->
+    <div v-else-if="!genreInit && genres.length > 0" class="placeholder">
+      <i class="pi pi-film" style="font-size: 44px; opacity: 0.15"></i>
       <p>Pilih genre di atas untuk melihat film</p>
     </div>
   </div>
 </template>
 
 <style scoped>
+/* ── Skeleton ──────────────────────────────────────── */
+.skel {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-dark3);
+  border-radius: var(--radius);
+}
+
+.skel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.035) 35%,
+    rgba(255, 255, 255, 0.07) 50%,
+    rgba(255, 255, 255, 0.035) 65%,
+    transparent 100%
+  );
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.skel-chip {
+  width: 90px;
+  height: 36px;
+  border-radius: 100px;
+}
+
+.skel-poster {
+  aspect-ratio: 2 / 3;
+  border-radius: 0;
+}
+
+.skel-line {
+  border-radius: 6px;
+}
+
+/* ── Page Head ─────────────────────────────────────── */
 .page-head {
   margin-bottom: 28px;
 }
@@ -184,7 +248,7 @@ onMounted(ambilGenre);
   color: var(--color-gray-dark);
 }
 
-/* ── Genre Chips ─────────────────────────────────────────── */
+/* ── Genre Chips ───────────────────────────────────── */
 .genre-section {
   margin-bottom: 36px;
 }
@@ -205,7 +269,7 @@ onMounted(ambilGenre);
   font-weight: 500;
   font-family: inherit;
   cursor: pointer;
-  transition: all var(--transition);
+  transition: all 0.2s;
   user-select: none;
 }
 
@@ -221,7 +285,7 @@ onMounted(ambilGenre);
   font-weight: 600;
 }
 
-/* ── Muat Lebih Banyak ──────────────────────────────────── */
+/* ── Load More ─────────────────────────────────────── */
 .btn-more {
   display: inline-flex;
   align-items: center;
@@ -236,7 +300,7 @@ onMounted(ambilGenre);
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
-  transition: all var(--transition);
+  transition: all 0.2s;
 }
 
 .btn-more:hover:not(:disabled) {
@@ -265,7 +329,7 @@ onMounted(ambilGenre);
   }
 }
 
-/* ── Film Section ────────────────────────────────────────── */
+/* ── Film Section ──────────────────────────────────── */
 .film-section {
   border-top: 1px solid var(--color-dark5);
   padding-top: 28px;
@@ -295,7 +359,7 @@ onMounted(ambilGenre);
   padding: 32px 0;
 }
 
-/* ── Film Grid ───────────────────────────────────────────── */
+/* ── Film Grid ─────────────────────────────────────── */
 .film-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -310,16 +374,17 @@ onMounted(ambilGenre);
   border-radius: var(--radius-lg);
   overflow: hidden;
   text-decoration: none;
-  transition: all var(--transition);
+  transition: all 0.2s;
 }
 
 .film-card:hover {
   transform: translateY(-4px);
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--shadow-card), var(--shadow-glow);
   border-color: rgba(233, 69, 96, 0.25);
 }
 
 .film-poster {
+  position: relative;
   aspect-ratio: 2 / 3;
   overflow: hidden;
   background: var(--color-dark2);
@@ -329,11 +394,37 @@ onMounted(ambilGenre);
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.4s ease;
+  transition: transform 0.4s ease, filter 0.4s ease;
 }
 
 .film-card:hover .film-poster img {
   transform: scale(1.06);
+  filter: brightness(0.45);
+}
+
+.film-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.film-card:hover .film-overlay {
+  opacity: 1;
+}
+
+.film-overlay-text {
+  padding: 9px 18px;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+  background: rgba(233, 69, 96, 0.9);
+  border-radius: var(--radius);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .film-info {
@@ -359,7 +450,7 @@ onMounted(ambilGenre);
   color: var(--color-gray-dark);
 }
 
-/* ── Placeholder ────────────────────────────────────────── */
+/* ── Placeholder ──────────────────────────────────── */
 .placeholder {
   display: flex;
   flex-direction: column;
@@ -370,12 +461,13 @@ onMounted(ambilGenre);
   font-size: 15px;
 }
 
-.placeholder-icon {
-  opacity: 0.25;
-}
-
-/* ── Responsive ──────────────────────────────────────────── */
+/* ── Responsive ────────────────────────────────────── */
 @media (max-width: 640px) {
+  .skel-chip {
+    width: 72px;
+    height: 32px;
+  }
+
   .film-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 14px;

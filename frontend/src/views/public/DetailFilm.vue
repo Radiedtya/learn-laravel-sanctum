@@ -15,15 +15,12 @@ const ambilDetailFilm = async () => {
   try {
     loading.value = true;
     error.value = null;
-
     const response = await api.get(`/public/films/${route.params.slug}`);
-
-    // Response: { status, message, film: {...}, actors: [...] }
     film.value = response.data.film;
     actors.value = response.data.actors;
   } catch (err) {
-    error.value = "Film tidak ditemukan atau server sedang bermasalah.";
-    console.error("Error detail:", err);
+    error.value = "Film tidak ditemukan.";
+    console.error(err);
   } finally {
     loading.value = false;
   }
@@ -41,22 +38,60 @@ onMounted(() => {
 
 <template>
   <div class="detail-page">
-    <!-- ── Loading ────────────────────────────────────────── -->
-    <div v-if="loading" class="detail-loading">
-      <div class="spinner"></div>
-      <p>Memuat detail film...</p>
-    </div>
+    <!-- ── Skeleton ──────────────────────────────────── -->
+    <template v-if="loading">
+      <div class="skel-hero-wrap">
+        <div class="skel skel-hero-bg"></div>
+        <div class="container skel-hero-inner">
+          <div class="skel skel-btn-back"></div>
+          <div class="skel-hero-body">
+            <div class="skel skel-hero-poster"></div>
+            <div class="skel-hero-text">
+              <div class="skel skel-line" style="width: 65%; height: 32px"></div>
+              <div class="skel-hero-tags">
+                <div class="skel skel-pill"></div>
+                <div class="skel skel-pill"></div>
+                <div class="skel skel-pill"></div>
+              </div>
+              <div class="skel skel-line" style="width: 80px; height: 36px; margin: 20px 0"></div>
+              <div class="skel skel-line" style="width: 140px; height: 14px"></div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-    <!-- ── Error ──────────────────────────────────────────── -->
+      <div class="container" style="margin-top: 8px">
+        <div class="skel skel-card">
+          <div class="skel skel-line" style="width: 120px; height: 18px; margin-bottom: 20px"></div>
+          <div class="skel skel-line w-100" style="height: 14px; margin-bottom: 12px"></div>
+          <div class="skel skel-line w-95" style="height: 14px; margin-bottom: 12px"></div>
+          <div class="skel skel-line w-80" style="height: 14px"></div>
+        </div>
+      </div>
+
+      <div class="container" style="margin-top: 8px">
+        <div class="skel skel-card">
+          <div class="skel skel-line" style="width: 140px; height: 18px; margin-bottom: 20px"></div>
+          <div class="skel-actor-row">
+            <div v-for="i in 6" :key="i" class="skel-actor-item">
+              <div class="skel skel-circle"></div>
+              <div class="skel skel-line" style="width: 70px; height: 12px; margin-top: 10px"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <!-- ── Error ─────────────────────────────────────── -->
     <div v-else-if="error" class="detail-error">
-      <div class="error-icon">⚠️</div>
+      <i class="pi pi-exclamation-circle"></i>
       <p>{{ error }}</p>
       <button class="btn btn-primary" @click="kembali">Kembali</button>
     </div>
 
-    <!-- ── Konten Detail ──────────────────────────────────── -->
+    <!-- ── Konten ────────────────────────────────────── -->
     <template v-else-if="film">
-      <!-- Hero Section -->
+      <!-- Hero -->
       <section class="hero">
         <div class="hero-backdrop">
           <img :src="film.poster" :alt="film.judul_film" />
@@ -65,32 +100,18 @@ onMounted(() => {
 
         <div class="container hero-content">
           <button class="btn-back" @click="kembali" title="Kembali">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <polyline points="15 18 9 12 15 6"></polyline>
-            </svg>
+            <i class="pi pi-arrow-left" style="font-size: 13px"></i>
             Kembali
           </button>
 
           <div class="hero-body">
-            <!-- Poster -->
             <div class="hero-poster">
               <img :src="film.poster" :alt="film.judul_film" />
             </div>
 
-            <!-- Info Utama -->
             <div class="hero-info">
               <h1 class="hero-title">{{ film.judul_film }}</h1>
 
-              <!-- Tags: genre + tahun + durasi -->
               <div class="hero-tags">
                 <span v-if="film.nama_genre" class="tag tag-genre">{{
                   film.nama_genre
@@ -103,27 +124,23 @@ onMounted(() => {
                 >
               </div>
 
-              <!-- Rating -->
               <div v-if="film.rating" class="hero-rating">
-                <div class="rating-star">★</div>
+                <i class="pi pi-star-fill rating-star-icon"></i>
                 <span class="rating-value">{{ film.rating }}</span>
-                <span class="rating-label">/ 5</span>
+                <span class="rating-max">/ 5</span>
               </div>
 
-              <!-- Sutradara -->
-              <div v-if="film.sutradara" class="meta-grid">
-                <div class="meta-item">
-                  <span class="meta-label">Sutradara</span>
-                  <span class="meta-value">{{ film.sutradara }}</span>
-                </div>
+              <div v-if="film.sutradara" class="hero-meta">
+                <span class="meta-label">Sutradara</span>
+                <span class="meta-value">{{ film.sutradara }}</span>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- Deskripsi Section -->
-      <section v-if="film.deskripsi" class="section-deskripsi">
+      <!-- Deskripsi -->
+      <section v-if="film.deskripsi" class="detail-section">
         <div class="container">
           <div class="section-card">
             <h2 class="section-title">Deskripsi</h2>
@@ -132,13 +149,17 @@ onMounted(() => {
         </div>
       </section>
 
-      <!-- Daftar Aktor Section -->
-      <section v-if="actors.length > 0" class="section-aktors">
+      <!-- Pemain -->
+      <section v-if="actors.length > 0" class="detail-section">
         <div class="container">
           <div class="section-card">
             <h2 class="section-title">Daftar Pemain</h2>
             <div class="actor-grid">
-              <div v-for="aktor in actors" :key="aktor.id" class="actor-card">
+              <div
+                v-for="aktor in actors"
+                :key="aktor.id"
+                class="actor-card"
+              >
                 <div class="actor-avatar">
                   <img
                     v-if="aktor.foto"
@@ -160,34 +181,138 @@ onMounted(() => {
 </template>
 
 <style scoped>
-/* ── Loading State ──────────────────────────────────────── */
-.detail-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 60vh;
-  gap: 20px;
-  color: var(--color-gray);
-  font-size: 15px;
+/* ── Skeleton Base ─────────────────────────────────── */
+.skel {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-dark3);
+  border-radius: var(--radius);
 }
 
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid var(--color-dark4);
-  border-top-color: var(--color-primary);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+.skel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.035) 35%,
+    rgba(255, 255, 255, 0.07) 50%,
+    rgba(255, 255, 255, 0.035) 65%,
+    transparent 100%
+  );
+  animation: shimmer 1.6s ease-in-out infinite;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
   }
 }
 
-/* ── Error State ────────────────────────────────────────── */
+.skel-line {
+  border-radius: 6px;
+}
+
+.w-100 {
+  width: 100%;
+}
+.w-95 {
+  width: 95%;
+}
+.w-80 {
+  width: 80%;
+}
+
+/* Skeleton hero */
+.skel-hero-wrap {
+  position: relative;
+  min-height: 520px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.skel-hero-bg {
+  position: absolute;
+  inset: 0;
+  border-radius: 0;
+  background: var(--color-dark2);
+}
+
+.skel-hero-inner {
+  position: relative;
+  z-index: 1;
+  padding-top: 32px;
+  padding-bottom: 48px;
+}
+
+.skel-btn-back {
+  width: 110px;
+  height: 36px;
+  border-radius: var(--radius);
+  margin-bottom: 32px;
+}
+
+.skel-hero-body {
+  display: flex;
+  gap: 40px;
+  align-items: flex-start;
+}
+
+.skel-hero-poster {
+  width: 280px;
+  aspect-ratio: 2 / 3;
+  border-radius: var(--radius-lg);
+  flex-shrink: 0;
+}
+
+.skel-hero-text {
+  flex: 1;
+  padding-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.skel-hero-tags {
+  display: flex;
+  gap: 10px;
+}
+
+.skel-pill {
+  width: 80px;
+  height: 28px;
+  border-radius: 100px;
+}
+
+.skel-card {
+  padding: 32px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-dark5);
+}
+
+.skel-actor-row {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 20px;
+}
+
+.skel-actor-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.skel-circle {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+}
+
+/* ── Error ─────────────────────────────────────────── */
 .detail-error {
   display: flex;
   flex-direction: column;
@@ -199,20 +324,21 @@ onMounted(() => {
   padding: 24px;
 }
 
-.error-icon {
-  font-size: 48px;
-  opacity: 0.7;
+.detail-error > i {
+  font-size: 44px;
+  color: var(--color-gray-dark);
 }
 
 .detail-error p {
   color: var(--color-gray);
-  font-size: 16px;
-  max-width: 400px;
+  font-size: 15px;
+  max-width: 360px;
+  line-height: 1.6;
 }
 
-/* ══════════════════════════════════════════════════════════
-   HERO SECTION
-   ══════════════════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════
+   HERO
+   ════════════════════════════════════════════════════ */
 .hero {
   position: relative;
   min-height: 520px;
@@ -265,7 +391,7 @@ onMounted(() => {
   font-weight: 500;
   font-family: inherit;
   cursor: pointer;
-  transition: all var(--transition);
+  transition: all 0.2s;
   backdrop-filter: blur(8px);
 }
 
@@ -296,11 +422,6 @@ onMounted(() => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.6s ease;
-}
-
-.hero-poster:hover img {
-  transform: scale(1.05);
 }
 
 .hero-info {
@@ -317,7 +438,7 @@ onMounted(() => {
   margin-bottom: 16px;
 }
 
-/* ── Tags ───────────────────────────────────────────────── */
+/* ── Tags ──────────────────────────────────────────── */
 .hero-tags {
   display: flex;
   flex-wrap: wrap;
@@ -352,21 +473,19 @@ onMounted(() => {
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* ── Rating ─────────────────────────────────────────────── */
+/* ── Rating ────────────────────────────────────────── */
 .hero-rating {
   display: flex;
   align-items: baseline;
-  gap: 6px;
+  gap: 8px;
   margin-bottom: 28px;
   padding-bottom: 24px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.rating-star {
+.rating-star-icon {
   color: #f1c40f;
-  font-size: 28px;
-  line-height: 1;
-  filter: drop-shadow(0 0 6px rgba(241, 196, 15, 0.4));
+  font-size: 20px;
 }
 
 .rating-value {
@@ -376,23 +495,16 @@ onMounted(() => {
   letter-spacing: -0.02em;
 }
 
-.rating-label {
+.rating-max {
   font-size: 15px;
   color: var(--color-gray-dark);
-  font-weight: 400;
 }
 
-/* ── Meta (Sutradara) ───────────────────────────────────── */
-.meta-grid {
+/* ── Meta ──────────────────────────────────────────── */
+.hero-meta {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-}
-
-.meta-item {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
+  gap: 4px;
 }
 
 .meta-label {
@@ -407,14 +519,12 @@ onMounted(() => {
   font-size: 15px;
   color: var(--color-text);
   font-weight: 500;
-  line-height: 1.5;
 }
 
-/* ══════════════════════════════════════════════════════════
-   SECTION: Deskripsi
-   ══════════════════════════════════════════════════════════ */
-.section-deskripsi,
-.section-aktors {
+/* ════════════════════════════════════════════════════
+   SECTIONS
+   ════════════════════════════════════════════════════ */
+.detail-section {
   padding: 8px 0 48px;
 }
 
@@ -426,29 +536,27 @@ onMounted(() => {
 }
 
 .section-title {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--color-white);
-  margin-bottom: 20px;
+  margin-bottom: 18px;
   padding-bottom: 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   letter-spacing: -0.01em;
 }
 
 .deskripsi-text {
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1.85;
   color: var(--color-text);
   white-space: pre-line;
 }
 
-/* ══════════════════════════════════════════════════════════
-   SECTION: Daftar Pemain (Aktor)
-   ══════════════════════════════════════════════════════════ */
+/* ── Actors ────────────────────────────────────────── */
 .actor-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 16px;
 }
 
 .actor-card {
@@ -460,18 +568,17 @@ onMounted(() => {
   background: var(--color-dark2);
   border: 1px solid var(--color-dark5);
   border-radius: var(--radius);
-  transition: all var(--transition);
+  transition: border-color 0.2s, transform 0.2s;
 }
 
 .actor-card:hover {
-  border-color: rgba(233, 69, 96, 0.3);
-  transform: translateY(-3px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  border-color: rgba(233, 69, 96, 0.25);
+  transform: translateY(-2px);
 }
 
 .actor-avatar {
-  width: 72px;
-  height: 72px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
   overflow: hidden;
   border: 2px solid var(--color-dark5);
@@ -486,22 +593,17 @@ onMounted(() => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.3s ease;
-}
-
-.actor-card:hover .actor-avatar img {
-  transform: scale(1.1);
 }
 
 .actor-initial {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
   color: var(--color-primary);
   text-transform: uppercase;
 }
 
 .actor-name {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--color-text);
   text-align: center;
@@ -512,10 +614,32 @@ onMounted(() => {
   overflow: hidden;
 }
 
-/* ══════════════════════════════════════════════════════════
+/* ════════════════════════════════════════════════════
    RESPONSIVE
-   ══════════════════════════════════════════════════════════ */
+   ════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
+  .skel-hero-wrap {
+    min-height: auto;
+  }
+
+  .skel-hero-body {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .skel-hero-poster {
+    width: 180px;
+  }
+
+  .skel-hero-text {
+    align-items: center;
+  }
+
+  .skel-actor-row {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
   .hero {
     min-height: auto;
   }
@@ -554,11 +678,7 @@ onMounted(() => {
     padding-bottom: 20px;
   }
 
-  .meta-grid {
-    align-items: center;
-  }
-
-  .meta-item {
+  .hero-meta {
     align-items: center;
   }
 
@@ -567,21 +687,17 @@ onMounted(() => {
   }
 
   .actor-grid {
-    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
     gap: 12px;
   }
 
   .actor-avatar {
-    width: 56px;
-    height: 56px;
+    width: 52px;
+    height: 52px;
   }
 
   .actor-initial {
-    font-size: 22px;
-  }
-
-  .actor-name {
-    font-size: 12px;
+    font-size: 20px;
   }
 
   .actor-card {
@@ -590,6 +706,14 @@ onMounted(() => {
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {
+  .skel-hero-poster {
+    width: 220px;
+  }
+
+  .skel-actor-row {
+    grid-template-columns: repeat(5, 1fr);
+  }
+
   .hero-poster {
     width: 220px;
   }

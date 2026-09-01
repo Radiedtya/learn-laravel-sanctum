@@ -111,7 +111,7 @@ const handleSubmit = async () => {
 <template>
   <div class="container">
     <div class="page-head">
-      <RouterLink to="/dashboard" class="back-link">
+      <RouterLink to="/kelola-film" class="back-link">
         <svg
           width="16"
           height="16"
@@ -124,7 +124,7 @@ const handleSubmit = async () => {
         >
           <polyline points="15 18 9 12 15 6" />
         </svg>
-        Dashboard
+        Kembali ke Kelola Film
       </RouterLink>
       <h1>Tambah Film</h1>
     </div>

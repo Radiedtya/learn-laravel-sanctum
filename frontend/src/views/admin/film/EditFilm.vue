@@ -120,7 +120,7 @@ const handleSubmit = async () => {
         >
           <polyline points="15 18 9 12 15 6" />
         </svg>
-        Kelola Film
+        Kembali ke Kelola Film
       </RouterLink>
       <h1>Edit Film</h1>
     </div>
